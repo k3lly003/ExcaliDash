@@ -259,6 +259,7 @@ export const Settings: React.FC = () => {
                 confirmText="OK"
                 showCancel={false}
                 isDangerous={false}
+                variant="success"
                 onConfirm={() => setImportSuccess(false)}
                 onCancel={() => setImportSuccess(false)}
             />

@@ -2,8 +2,11 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
+import fs from "fs";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import multer from "multer";
+import archiver from "archiver";
 // @ts-ignore
 import { PrismaClient } from "./generated/client";
 
@@ -26,8 +29,12 @@ const io = new Server(httpServer, {
 const prisma = new PrismaClient();
 const PORT = process.env.PORT || 8000;
 
+// Multer setup for file uploads
+const upload = multer({ dest: "uploads/" });
+
 app.use(cors());
 app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 // Socket.io Logic
 interface User {
@@ -372,6 +379,189 @@ app.delete("/collections/:id", async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ error: "Failed to delete collection" });
+  }
+});
+
+// --- Export/Import Endpoints ---
+
+// GET /export - Export SQLite database
+app.get("/export", async (req, res) => {
+  try {
+    const dbPath = path.resolve(__dirname, "../prisma/dev.db");
+
+    if (!fs.existsSync(dbPath)) {
+      return res.status(404).json({ error: "Database file not found" });
+    }
+
+    res.setHeader("Content-Type", "application/octet-stream");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="excalidash-db-${
+        new Date().toISOString().split("T")[0]
+      }.sqlite"`
+    );
+
+    const fileStream = fs.createReadStream(dbPath);
+    fileStream.pipe(res);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to export database" });
+  }
+});
+
+// GET /export/json - Export drawings as ZIP of .excalidraw files
+app.get("/export/json", async (req, res) => {
+  try {
+    const drawings = await prisma.drawing.findMany({
+      include: {
+        collection: true,
+      },
+    });
+
+    res.setHeader("Content-Type", "application/zip");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="excalidraw-drawings-${
+        new Date().toISOString().split("T")[0]
+      }.zip"`
+    );
+
+    const archive = archiver("zip", { zlib: { level: 9 } });
+
+    archive.on("error", (err) => {
+      console.error("Archive error:", err);
+      res.status(500).json({ error: "Failed to create archive" });
+    });
+
+    archive.pipe(res);
+
+    // Group drawings by collection
+    const drawingsByCollection: { [key: string]: any[] } = {};
+
+    drawings.forEach((drawing: any) => {
+      const collectionName = drawing.collection?.name || "Unorganized";
+      if (!drawingsByCollection[collectionName]) {
+        drawingsByCollection[collectionName] = [];
+      }
+
+      const drawingData = {
+        elements: JSON.parse(drawing.elements),
+        appState: JSON.parse(drawing.appState),
+        files: JSON.parse(drawing.files || "{}"),
+      };
+
+      drawingsByCollection[collectionName].push({
+        name: drawing.name,
+        data: drawingData,
+      });
+    });
+
+    // Create folders and add files
+    Object.entries(drawingsByCollection).forEach(
+      ([collectionName, collectionDrawings]) => {
+        const folderName = collectionName.replace(/[<>:"/\\|?*]/g, "_"); // Sanitize folder name
+        collectionDrawings.forEach((drawing, index) => {
+          const fileName = `${drawing.name.replace(
+            /[<>:"/\\|?*]/g,
+            "_"
+          )}.excalidraw`;
+          const filePath = `${folderName}/${fileName}`;
+
+          archive.append(JSON.stringify(drawing.data, null, 2), {
+            name: filePath,
+          });
+        });
+      }
+    );
+
+    // Add a readme file
+    const readmeContent = `ExcaliDash Export
+
+This archive contains your ExcaliDash drawings organized by collection folders.
+
+Structure:
+- Each collection has its own folder
+- Each drawing is saved as a .excalidraw file
+- Files can be imported back into ExcaliDash
+
+Export Date: ${new Date().toISOString()}
+Total Collections: ${Object.keys(drawingsByCollection).length}
+Total Drawings: ${drawings.length}
+
+Collections:
+${Object.entries(drawingsByCollection)
+  .map(([name, drawings]) => `- ${name}: ${drawings.length} drawings`)
+  .join("\n")}
+`;
+
+    archive.append(readmeContent, { name: "README.txt" });
+
+    await archive.finalize();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to export drawings" });
+  }
+});
+
+// POST /import/sqlite/verify - Verify SQLite database before import
+app.post("/import/sqlite/verify", upload.single("db"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    // Basic verification: check if it's a SQLite file
+    const buffer = fs.readFileSync(req.file.path);
+    const header = buffer.slice(0, 16).toString("ascii");
+
+    if (!header.startsWith("SQLite format 3")) {
+      fs.unlinkSync(req.file.path);
+      return res.status(400).json({ error: "Invalid SQLite file" });
+    }
+
+    // Additional verification could be added here
+    // For now, we'll just check the file signature
+
+    fs.unlinkSync(req.file.path);
+    res.json({ valid: true, message: "Database file is valid" });
+  } catch (error) {
+    console.error(error);
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({ error: "Failed to verify database file" });
+  }
+});
+
+// POST /import/sqlite - Import SQLite database
+app.post("/import/sqlite", upload.single("db"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const dbPath = path.resolve(__dirname, "../prisma/dev.db");
+
+    // Backup current database
+    if (fs.existsSync(dbPath)) {
+      const backupPath = path.resolve(__dirname, "../prisma/dev.db.backup");
+      fs.copyFileSync(dbPath, backupPath);
+    }
+
+    // Replace database file
+    fs.copyFileSync(req.file.path, dbPath);
+    fs.unlinkSync(req.file.path);
+
+    // Reinitialize Prisma client
+    await prisma.$disconnect();
+
+    res.json({ success: true, message: "Database imported successfully" });
+  } catch (error) {
+    console.error(error);
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({ error: "Failed to import database" });
   }
 });
 

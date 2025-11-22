@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Layout } from '../components/Layout';
 import { DrawingCard } from '../components/DrawingCard';
-import { Plus, Search, Loader2, Inbox, Trash2, Folder, ArrowRight, Copy } from 'lucide-react';
+import { Plus, Search, Loader2, Inbox, Trash2, Folder, ArrowRight, Copy, Upload } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import * as api from '../api';
 import type { Drawing, Collection } from '../types';
@@ -78,6 +78,10 @@ export const Dashboard: React.FC = () => {
   // Modal State
   const [drawingToDelete, setDrawingToDelete] = useState<string | null>(null);
   const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
+
+  // Import state
+  const [showImportError, setShowImportError] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: '' });
+  const [showImportSuccess, setShowImportSuccess] = useState(false);
 
   // Drag Selection State
   const [isDragSelecting, setIsDragSelecting] = useState(false);
@@ -303,6 +307,24 @@ export const Dashboard: React.FC = () => {
       navigate(`/editor/${id}`);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleImportDrawings = async (files: FileList | null) => {
+    if (!files || isTrashView) return;
+    
+    const fileArray = Array.from(files);
+    const targetCollectionId = selectedCollectionId === undefined ? null : selectedCollectionId;
+    
+    const result = await importDrawings(fileArray, targetCollectionId, refreshData);
+    
+    if (result.failed > 0) {
+      setShowImportError({
+        isOpen: true,
+        message: `Import complete with errors.\nSuccess: ${result.success}\nFailed: ${result.failed}\nErrors:\n${result.errors.join('\n')}`
+      });
+    } else {
+      setShowImportSuccess(true);
     }
   };
 
@@ -784,6 +806,32 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
 
+          <input
+            type="file"
+            multiple
+            accept=".json,.excalidraw"
+            className="hidden"
+            id="dashboard-import"
+            onChange={(e) => {
+              handleImportDrawings(e.target.files);
+              e.target.value = ''; // Reset input
+            }}
+          />
+          
+          <button
+            onClick={() => document.getElementById('dashboard-import')?.click()}
+            disabled={isTrashView}
+            className={clsx(
+              "h-[42px] w-full sm:w-auto flex items-center justify-center gap-2 px-6 rounded-xl border-2 border-black dark:border-neutral-700 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)] transition-all font-bold text-sm whitespace-nowrap",
+              isTrashView
+                ? "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-600 border-slate-300 dark:border-slate-700 shadow-none cursor-not-allowed"
+                : "bg-emerald-600 dark:bg-neutral-800 text-white hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[4px_4px_0px_0px_rgba(255,255,255,0.2)] hover:-translate-y-1 active:translate-y-0 active:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] dark:active:shadow-[2px_2px_0px_0px_rgba(255,255,255,0.2)]"
+            )}
+          >
+            <Upload size={18} strokeWidth={2.5} />
+            Import
+          </button>
+
           <button
             onClick={handleCreateDrawing}
             disabled={isTrashView}
@@ -910,6 +958,29 @@ export const Dashboard: React.FC = () => {
         confirmText={`Delete ${selectedIds.size} Drawings`}
         onConfirm={executeBulkPermanentDelete}
         onCancel={() => setShowBulkDeleteConfirm(false)}
+      />
+
+      <ConfirmModal
+        isOpen={showImportError.isOpen}
+        title="Import Failed"
+        message={showImportError.message}
+        confirmText="OK"
+        showCancel={false}
+        isDangerous={false}
+        onConfirm={() => setShowImportError({ isOpen: false, message: '' })}
+        onCancel={() => setShowImportError({ isOpen: false, message: '' })}
+      />
+
+      <ConfirmModal
+        isOpen={showImportSuccess}
+        title="Import Successful"
+        message="Drawings imported successfully."
+        confirmText="OK"
+        showCancel={false}
+        isDangerous={false}
+        variant="success"
+        onConfirm={() => setShowImportSuccess(false)}
+        onCancel={() => setShowImportSuccess(false)}
       />
     </Layout>
   );

@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, CheckCircle, X } from 'lucide-react';
 
 interface ConfirmModalProps {
   isOpen: boolean;
@@ -12,6 +12,7 @@ interface ConfirmModalProps {
   onCancel: () => void;
   isDangerous?: boolean; // Makes confirm button red
   showCancel?: boolean;
+  variant?: 'warning' | 'success'; // Controls icon and styling
 }
 
 export const ConfirmModal: React.FC<ConfirmModalProps> = ({
@@ -23,9 +24,17 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   onConfirm,
   onCancel,
   isDangerous = true,
-  showCancel = true
+  showCancel = true,
+  variant = 'warning'
 }) => {
   if (!isOpen) return null;
+
+  // Icon and styling based on variant
+  const isSuccess = variant === 'success';
+  const IconComponent = isSuccess ? CheckCircle : AlertTriangle;
+  const iconClasses = isSuccess 
+    ? "w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-300 border-2 border-emerald-200 dark:border-emerald-900/30"
+    : "w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center text-rose-600 dark:text-rose-300 border-2 border-rose-200 dark:border-rose-900/30";
 
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -45,8 +54,8 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         </button>
 
         <div className="flex flex-col items-center text-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center text-rose-600 dark:text-rose-300 border-2 border-rose-200 dark:border-rose-900/30">
-            <AlertTriangle size={24} strokeWidth={2.5} />
+          <div className={iconClasses}>
+            <IconComponent size={24} strokeWidth={2.5} />
           </div>
 
           <div className="space-y-2">
