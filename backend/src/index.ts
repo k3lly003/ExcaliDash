@@ -135,6 +135,7 @@ app.get("/drawings", async (req, res) => {
       ...d,
       elements: JSON.parse(d.elements),
       appState: JSON.parse(d.appState),
+      files: JSON.parse(d.files || "{}"),
     }));
 
     res.json(parsedDrawings);
@@ -172,6 +173,7 @@ app.get("/drawings/:id", async (req, res) => {
       ...drawing,
       elements: JSON.parse(drawing.elements),
       appState: JSON.parse(drawing.appState),
+      files: JSON.parse(drawing.files || "{}"),
     });
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch drawing" });
@@ -181,7 +183,7 @@ app.get("/drawings/:id", async (req, res) => {
 // POST /drawings
 app.post("/drawings", async (req, res) => {
   try {
-    const { name, elements, appState, collectionId, preview } = req.body;
+    const { name, elements, appState, collectionId, preview, files } = req.body;
 
     const newDrawing = await prisma.drawing.create({
       data: {
@@ -190,6 +192,7 @@ app.post("/drawings", async (req, res) => {
         appState: JSON.stringify(appState || {}),
         collectionId: collectionId || null,
         preview: preview || null,
+        files: JSON.stringify(files || {}),
       },
     });
 
@@ -197,6 +200,7 @@ app.post("/drawings", async (req, res) => {
       ...newDrawing,
       elements: JSON.parse(newDrawing.elements),
       appState: JSON.parse(newDrawing.appState),
+      files: JSON.parse(newDrawing.files || "{}"),
     });
   } catch (error) {
     res.status(500).json({ error: "Failed to create drawing" });
@@ -207,7 +211,7 @@ app.post("/drawings", async (req, res) => {
 app.put("/drawings/:id", async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, elements, appState, collectionId, preview } = req.body;
+    const { name, elements, appState, collectionId, preview, files } = req.body;
 
     console.log("[API] Updating drawing", {
       id,
@@ -215,6 +219,7 @@ app.put("/drawings/:id", async (req, res) => {
       elementCount:
         elements && Array.isArray(elements) ? elements.length : undefined,
       hasAppState: appState !== undefined,
+      hasFiles: files !== undefined,
       hasPreview: preview !== undefined,
     });
 
@@ -225,6 +230,7 @@ app.put("/drawings/:id", async (req, res) => {
     if (name !== undefined) data.name = name;
     if (elements !== undefined) data.elements = JSON.stringify(elements);
     if (appState !== undefined) data.appState = JSON.stringify(appState);
+    if (files !== undefined) data.files = JSON.stringify(files);
     if (collectionId !== undefined) data.collectionId = collectionId;
     if (preview !== undefined) data.preview = preview;
 
@@ -249,6 +255,7 @@ app.put("/drawings/:id", async (req, res) => {
       ...updatedDrawing,
       elements: JSON.parse(updatedDrawing.elements),
       appState: JSON.parse(updatedDrawing.appState),
+      files: JSON.parse(updatedDrawing.files || "{}"),
     });
   } catch (error) {
     res.status(500).json({ error: "Failed to update drawing" });
@@ -281,6 +288,7 @@ app.post("/drawings/:id/duplicate", async (req, res) => {
         name: `${original.name} (Copy)`,
         elements: original.elements,
         appState: original.appState,
+        files: original.files,
         collectionId: original.collectionId,
         version: 1,
       },
@@ -290,6 +298,7 @@ app.post("/drawings/:id/duplicate", async (req, res) => {
       ...newDrawing,
       elements: JSON.parse(newDrawing.elements),
       appState: JSON.parse(newDrawing.appState),
+      files: JSON.parse(newDrawing.files || "{}"),
     });
   } catch (error) {
     res.status(500).json({ error: "Failed to duplicate drawing" });

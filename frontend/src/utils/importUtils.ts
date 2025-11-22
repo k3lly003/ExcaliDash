@@ -29,7 +29,8 @@ export const importDrawings = async (
           throw new Error(`Invalid file structure: ${file.name}`);
         }
 
-        // Generate Preview
+        // Use raw elements directly from the file - no normalization needed
+        // Generate Preview with raw elements
         const svg = await exportToSvg({
           elements: data.elements,
           appState: {
@@ -37,11 +38,11 @@ export const importDrawings = async (
             exportBackground: true,
             viewBackgroundColor: data.appState.viewBackgroundColor || "#ffffff",
           },
-          files: data.files || null,
+          files: data.files || {},
           exportPadding: 10,
         });
 
-        // Prepare payload
+        // Prepare payload with raw elements
         const payload = {
           name: file.name.replace(/\.(json|excalidraw)$/, ""),
           elements: data.elements,

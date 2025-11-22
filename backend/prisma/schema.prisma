@@ -24,6 +24,7 @@ model Drawing {
   name         String
   elements     String // Stored as JSON string
   appState     String // Stored as JSON string
+  files        String      @default("{}") // Stored as JSON string
   preview      String? // SVG string for thumbnail
   version      Int         @default(1)
   collectionId String?

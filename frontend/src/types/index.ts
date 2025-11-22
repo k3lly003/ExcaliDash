@@ -3,6 +3,7 @@ export interface Drawing {
   name: string;
   elements: any[];
   appState: any;
+  files: Record<string, any> | null;
   collectionId: string | null;
   updatedAt: number;
   createdAt: number;

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import { Excalidraw, convertToExcalidrawElements, exportToSvg } from '@excalidraw/excalidraw';
+import { Excalidraw, exportToSvg } from '@excalidraw/excalidraw';
 import '@excalidraw/excalidraw/index.css';
 import debounce from 'lodash/debounce';
 import throttle from 'lodash/throttle';
@@ -235,6 +235,7 @@ export const Editor: React.FC = () => {
       gridSize: null,
       collaborators: new Map(),
     },
+    files: {},
     scrollToContent: true,
   }), []);
 
@@ -269,6 +270,7 @@ export const Editor: React.FC = () => {
       await api.updateDrawing(id, {
         elements: persistableElements,
         appState: persistableAppState,
+        files: latestFilesRef.current || {},
       });
 
       console.log("[Editor] Save complete", { drawingId: id });
@@ -362,7 +364,7 @@ export const Editor: React.FC = () => {
     hasHydratedInitialScene.current = false;
     elementVersionMap.current.clear();
     latestElementsRef.current = [];
-    latestFilesRef.current = null;
+    latestFilesRef.current = {};
     excalidrawAPI.current = null;
     setIsReady(false);
     setIsSceneLoading(true);
@@ -378,9 +380,11 @@ export const Editor: React.FC = () => {
         const data = await api.getDrawing(id);
         setDrawingName(data.name);
         
-        const elements = convertToExcalidrawElements(data.elements || []);
+        // Use elements directly without converting - they're already normalized during import
+        const elements = data.elements || [];
+        const files = data.files || {};
         latestElementsRef.current = elements;
-        latestFilesRef.current = null;
+        latestFilesRef.current = files;
         
         elements.forEach((el: any) => {
           recordElementVersion(el);
@@ -397,11 +401,14 @@ export const Editor: React.FC = () => {
         setInitialData({
           elements,
           appState: hydratedAppState,
+          files,
           scrollToContent: true,
         });
       } catch (err) {
         console.error('Failed to load drawing', err);
         toast.error("Failed to load drawing");
+        latestElementsRef.current = [];
+        latestFilesRef.current = {};
         setInitialData(buildEmptyScene());
       } finally {
         setIsSceneLoading(false);
@@ -422,7 +429,7 @@ export const Editor: React.FC = () => {
         if (excalidrawAPI.current && saveDataRef.current && savePreviewRef.current) {
           const elements = excalidrawAPI.current.getSceneElementsIncludingDeleted();
           const appState = excalidrawAPI.current.getAppState();
-          const files = excalidrawAPI.current.getFiles() || null;
+          const files = excalidrawAPI.current.getFiles() || {};
           latestElementsRef.current = elements;
           latestFilesRef.current = files;
           // Call save immediately, bypassing debounce
@@ -494,11 +501,11 @@ export const Editor: React.FC = () => {
     debouncedSave(allElements, appState);
 
     // Trigger Slow Preview Gen
-    const files = excalidrawAPI.current?.getFiles() || null;
+    const files = excalidrawAPI.current?.getFiles() || {};
     latestFilesRef.current = files;
     console.log("[Editor] Queueing preview save", {
       drawingId: id,
-      fileCount: files ? Object.keys(files).length : 0,
+      fileCount: Object.keys(files).length,
     });
     debouncedSavePreview(allElements, appState, files);
   }, [debouncedSave, debouncedSavePreview, broadcastChanges]);

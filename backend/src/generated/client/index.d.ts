@@ -1918,6 +1918,7 @@ export namespace Prisma {
     name: string | null
     elements: string | null
     appState: string | null
+    files: string | null
     preview: string | null
     version: number | null
     collectionId: string | null
@@ -1930,6 +1931,7 @@ export namespace Prisma {
     name: string | null
     elements: string | null
     appState: string | null
+    files: string | null
     preview: string | null
     version: number | null
     collectionId: string | null
@@ -1942,6 +1944,7 @@ export namespace Prisma {
     name: number
     elements: number
     appState: number
+    files: number
     preview: number
     version: number
     collectionId: number
@@ -1964,6 +1967,7 @@ export namespace Prisma {
     name?: true
     elements?: true
     appState?: true
+    files?: true
     preview?: true
     version?: true
     collectionId?: true
@@ -1976,6 +1980,7 @@ export namespace Prisma {
     name?: true
     elements?: true
     appState?: true
+    files?: true
     preview?: true
     version?: true
     collectionId?: true
@@ -1988,6 +1993,7 @@ export namespace Prisma {
     name?: true
     elements?: true
     appState?: true
+    files?: true
     preview?: true
     version?: true
     collectionId?: true
@@ -2087,6 +2093,7 @@ export namespace Prisma {
     name: string
     elements: string
     appState: string
+    files: string
     preview: string | null
     version: number
     collectionId: string | null
@@ -2118,6 +2125,7 @@ export namespace Prisma {
     name?: boolean
     elements?: boolean
     appState?: boolean
+    files?: boolean
     preview?: boolean
     version?: boolean
     collectionId?: boolean
@@ -2131,6 +2139,7 @@ export namespace Prisma {
     name?: boolean
     elements?: boolean
     appState?: boolean
+    files?: boolean
     preview?: boolean
     version?: boolean
     collectionId?: boolean
@@ -2144,6 +2153,7 @@ export namespace Prisma {
     name?: boolean
     elements?: boolean
     appState?: boolean
+    files?: boolean
     preview?: boolean
     version?: boolean
     collectionId?: boolean
@@ -2168,6 +2178,7 @@ export namespace Prisma {
       name: string
       elements: string
       appState: string
+      files: string
       preview: string | null
       version: number
       collectionId: string | null
@@ -2571,6 +2582,7 @@ export namespace Prisma {
     readonly name: FieldRef<"Drawing", 'String'>
     readonly elements: FieldRef<"Drawing", 'String'>
     readonly appState: FieldRef<"Drawing", 'String'>
+    readonly files: FieldRef<"Drawing", 'String'>
     readonly preview: FieldRef<"Drawing", 'String'>
     readonly version: FieldRef<"Drawing", 'Int'>
     readonly collectionId: FieldRef<"Drawing", 'String'>
@@ -2947,6 +2959,7 @@ export namespace Prisma {
     name: 'name',
     elements: 'elements',
     appState: 'appState',
+    files: 'files',
     preview: 'preview',
     version: 'version',
     collectionId: 'collectionId',
@@ -3067,6 +3080,7 @@ export namespace Prisma {
     name?: StringFilter<"Drawing"> | string
     elements?: StringFilter<"Drawing"> | string
     appState?: StringFilter<"Drawing"> | string
+    files?: StringFilter<"Drawing"> | string
     preview?: StringNullableFilter<"Drawing"> | string | null
     version?: IntFilter<"Drawing"> | number
     collectionId?: StringNullableFilter<"Drawing"> | string | null
@@ -3080,6 +3094,7 @@ export namespace Prisma {
     name?: SortOrder
     elements?: SortOrder
     appState?: SortOrder
+    files?: SortOrder
     preview?: SortOrderInput | SortOrder
     version?: SortOrder
     collectionId?: SortOrderInput | SortOrder
@@ -3096,6 +3111,7 @@ export namespace Prisma {
     name?: StringFilter<"Drawing"> | string
     elements?: StringFilter<"Drawing"> | string
     appState?: StringFilter<"Drawing"> | string
+    files?: StringFilter<"Drawing"> | string
     preview?: StringNullableFilter<"Drawing"> | string | null
     version?: IntFilter<"Drawing"> | number
     collectionId?: StringNullableFilter<"Drawing"> | string | null
@@ -3109,6 +3125,7 @@ export namespace Prisma {
     name?: SortOrder
     elements?: SortOrder
     appState?: SortOrder
+    files?: SortOrder
     preview?: SortOrderInput | SortOrder
     version?: SortOrder
     collectionId?: SortOrderInput | SortOrder
@@ -3129,6 +3146,7 @@ export namespace Prisma {
     name?: StringWithAggregatesFilter<"Drawing"> | string
     elements?: StringWithAggregatesFilter<"Drawing"> | string
     appState?: StringWithAggregatesFilter<"Drawing"> | string
+    files?: StringWithAggregatesFilter<"Drawing"> | string
     preview?: StringNullableWithAggregatesFilter<"Drawing"> | string | null
     version?: IntWithAggregatesFilter<"Drawing"> | number
     collectionId?: StringNullableWithAggregatesFilter<"Drawing"> | string | null
@@ -3194,6 +3212,7 @@ export namespace Prisma {
     name: string
     elements: string
     appState: string
+    files?: string
     preview?: string | null
     version?: number
     createdAt?: Date | string
@@ -3206,6 +3225,7 @@ export namespace Prisma {
     name: string
     elements: string
     appState: string
+    files?: string
     preview?: string | null
     version?: number
     collectionId?: string | null
@@ -3218,6 +3238,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     elements?: StringFieldUpdateOperationsInput | string
     appState?: StringFieldUpdateOperationsInput | string
+    files?: StringFieldUpdateOperationsInput | string
     preview?: NullableStringFieldUpdateOperationsInput | string | null
     version?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -3230,6 +3251,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     elements?: StringFieldUpdateOperationsInput | string
     appState?: StringFieldUpdateOperationsInput | string
+    files?: StringFieldUpdateOperationsInput | string
     preview?: NullableStringFieldUpdateOperationsInput | string | null
     version?: IntFieldUpdateOperationsInput | number
     collectionId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -3242,6 +3264,7 @@ export namespace Prisma {
     name: string
     elements: string
     appState: string
+    files?: string
     preview?: string | null
     version?: number
     collectionId?: string | null
@@ -3254,6 +3277,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     elements?: StringFieldUpdateOperationsInput | string
     appState?: StringFieldUpdateOperationsInput | string
+    files?: StringFieldUpdateOperationsInput | string
     preview?: NullableStringFieldUpdateOperationsInput | string | null
     version?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -3265,6 +3289,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     elements?: StringFieldUpdateOperationsInput | string
     appState?: StringFieldUpdateOperationsInput | string
+    files?: StringFieldUpdateOperationsInput | string
     preview?: NullableStringFieldUpdateOperationsInput | string | null
     version?: IntFieldUpdateOperationsInput | number
     collectionId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -3399,6 +3424,7 @@ export namespace Prisma {
     name?: SortOrder
     elements?: SortOrder
     appState?: SortOrder
+    files?: SortOrder
     preview?: SortOrder
     version?: SortOrder
     collectionId?: SortOrder
@@ -3415,6 +3441,7 @@ export namespace Prisma {
     name?: SortOrder
     elements?: SortOrder
     appState?: SortOrder
+    files?: SortOrder
     preview?: SortOrder
     version?: SortOrder
     collectionId?: SortOrder
@@ -3427,6 +3454,7 @@ export namespace Prisma {
     name?: SortOrder
     elements?: SortOrder
     appState?: SortOrder
+    files?: SortOrder
     preview?: SortOrder
     version?: SortOrder
     collectionId?: SortOrder
@@ -3690,6 +3718,7 @@ export namespace Prisma {
     name: string
     elements: string
     appState: string
+    files?: string
     preview?: string | null
     version?: number
     createdAt?: Date | string
@@ -3701,6 +3730,7 @@ export namespace Prisma {
     name: string
     elements: string
     appState: string
+    files?: string
     preview?: string | null
     version?: number
     createdAt?: Date | string
@@ -3740,6 +3770,7 @@ export namespace Prisma {
     name?: StringFilter<"Drawing"> | string
     elements?: StringFilter<"Drawing"> | string
     appState?: StringFilter<"Drawing"> | string
+    files?: StringFilter<"Drawing"> | string
     preview?: StringNullableFilter<"Drawing"> | string | null
     version?: IntFilter<"Drawing"> | number
     collectionId?: StringNullableFilter<"Drawing"> | string | null
@@ -3796,6 +3827,7 @@ export namespace Prisma {
     name: string
     elements: string
     appState: string
+    files?: string
     preview?: string | null
     version?: number
     createdAt?: Date | string
@@ -3807,6 +3839,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     elements?: StringFieldUpdateOperationsInput | string
     appState?: StringFieldUpdateOperationsInput | string
+    files?: StringFieldUpdateOperationsInput | string
     preview?: NullableStringFieldUpdateOperationsInput | string | null
     version?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -3818,6 +3851,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     elements?: StringFieldUpdateOperationsInput | string
     appState?: StringFieldUpdateOperationsInput | string
+    files?: StringFieldUpdateOperationsInput | string
     preview?: NullableStringFieldUpdateOperationsInput | string | null
     version?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -3829,6 +3863,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     elements?: StringFieldUpdateOperationsInput | string
     appState?: StringFieldUpdateOperationsInput | string
+    files?: StringFieldUpdateOperationsInput | string
     preview?: NullableStringFieldUpdateOperationsInput | string | null
     version?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
