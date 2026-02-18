@@ -1,4 +1,4 @@
-# ExcaliDash v0.4.27-dev
+# ExcaliDash v0.4.27
 
 Release date: 2026-02-18
 
@@ -27,9 +27,9 @@ Edit `docker-compose.prod.yml` and pin the release tags:
 ```yaml
 services:
   backend:
-    image: zimengxiong/excalidash-backend:v0.4.27-dev
+    image: zimengxiong/excalidash-backend:0.4.27
   frontend:
-    image: zimengxiong/excalidash-frontend:v0.4.27-dev
+    image: zimengxiong/excalidash-frontend:0.4.27
 ```
 
 Example:
@@ -39,8 +39,6 @@ docker compose -f docker-compose.prod.yml up -d
 ```
 
 </details>
-
-## RC for v0.4.27 release
 
 ### Authentication and user management
 
