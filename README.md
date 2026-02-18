@@ -121,7 +121,7 @@ Notes:
 # Installation
 
 > [!CAUTION]
-> This is a pre-release feature and production-readiness depends on deployment controls:
+> This is a BETA deployment and production-readiness depends on deployment controls:
 > use TLS, trusted reverse proxy, fixed secrets, backups, and endpoint rate limits.
 
 > [!CAUTION]
