@@ -1,7 +1,9 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import express from "express";
 import request from "supertest";
+import { z } from "zod";
 import { registerDrawingRoutes } from "../routes/dashboard/drawings";
+import type { DashboardRouteDeps } from "../routes/dashboard/types";
 
 /**
  * Tests for the Drawing Version History feature:
@@ -67,15 +69,17 @@ function buildApp() {
     next();
   });
 
-  registerDrawingRoutes(app, {
+  const deps: DashboardRouteDeps = {
     prisma,
     requireAuth: (_req: any, _res: any, next: any) => next(),
     optionalAuth: (_req: any, _res: any, next: any) => next(),
     asyncHandler: (fn: any) => (req: any, res: any, next: any) => Promise.resolve(fn(req, res, next)).catch(next),
     parseJsonField: (val: string, fallback: any) => { try { return JSON.parse(val); } catch { return fallback; } },
+    sanitizeText: (input) => String(input ?? ""),
     validateImportedDrawing: vi.fn().mockReturnValue(true),
-    drawingCreateSchema: { safeParse: vi.fn().mockReturnValue({ success: true, data: {} }) },
-    drawingUpdateSchema: { safeParse: vi.fn() },
+    drawingCreateSchema: { safeParse: vi.fn().mockReturnValue({ success: true, data: {} }) } as unknown as z.ZodTypeAny,
+    drawingUpdateSchema: { safeParse: vi.fn() } as unknown as z.ZodTypeAny,
+    collectionNameSchema: { safeParse: vi.fn() } as unknown as z.ZodTypeAny,
     respondWithValidationErrors: vi.fn(),
     ensureTrashCollection: vi.fn(),
     invalidateDrawingsCache: vi.fn(),
@@ -85,7 +89,8 @@ function buildApp() {
     MAX_PAGE_SIZE: 100,
     config: { nodeEnv: "test", enableAuditLogging: false },
     logAuditEvent: vi.fn(),
-  });
+  };
+  registerDrawingRoutes(app, deps);
 
   return { app, prisma };
 }

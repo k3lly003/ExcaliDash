@@ -18,6 +18,9 @@ import {
   type DrawingPrincipal,
 } from "../../authz/sharing";
 
+const routeParam = (value: string | string[] | undefined): string =>
+  (Array.isArray(value) ? value[0] : value) ?? "";
+
 export const registerDrawingRoutes = (
   app: express.Express,
   deps: DashboardRouteDeps
@@ -335,7 +338,7 @@ export const registerDrawingRoutes = (
   app.get("/drawings/:id", optionalAuth, asyncHandler(async (req, res) => {
     const principal = await getRequestPrincipal(req);
 
-    const { id } = req.params;
+    const id = routeParam(req.params.id);
     const access = await getDrawingAccess({ prisma, principal, drawingId: id });
     if (!canViewDrawing(access)) {
       if (respondWithAuthErrorIfPresent(req, res)) return;
@@ -423,7 +426,7 @@ export const registerDrawingRoutes = (
   app.put("/drawings/:id", optionalAuth, asyncHandler(async (req, res) => {
     const principal = await getRequestPrincipal(req);
 
-    const { id } = req.params;
+    const id = routeParam(req.params.id);
     const access = await getDrawingAccess({ prisma, principal, drawingId: id });
     if (!canEditDrawing(access)) {
       if (respondWithAuthErrorIfPresent(req, res)) return;
@@ -497,27 +500,30 @@ export const registerDrawingRoutes = (
 
     try {
       if (isSceneUpdate) {
-        updatedDrawing = await prisma.$transaction(async (tx) => {
-          await tx.drawingSnapshot.create({
-            data: {
-              drawingId: id,
-              version: existingDrawing.version,
-              elements: existingDrawing.elements,
-              appState: existingDrawing.appState,
-              files: existingDrawing.files,
-            },
-          });
+        updatedDrawing = await prisma.$transaction(
+          async (tx) => {
+            await tx.drawingSnapshot.create({
+              data: {
+                drawingId: id,
+                version: existingDrawing.version,
+                elements: existingDrawing.elements,
+                appState: existingDrawing.appState,
+                files: existingDrawing.files,
+              },
+            });
 
-          const updateResult = await tx.drawing.updateMany({
-            where: updateWhere,
-            data,
-          });
-          if (updateResult.count === 0) {
-            throw versionConflictError;
-          }
+            const updateResult = await tx.drawing.updateMany({
+              where: updateWhere,
+              data,
+            });
+            if (updateResult.count === 0) {
+              throw versionConflictError;
+            }
 
-          return tx.drawing.findFirst({ where: { id } });
-        });
+            return tx.drawing.findFirst({ where: { id } });
+          },
+          { timeout: 120_000 },
+        );
       } else {
         const updateResult = await prisma.drawing.updateMany({
           where: updateWhere,
@@ -567,7 +573,7 @@ export const registerDrawingRoutes = (
 
   app.delete("/drawings/:id", requireAuth, asyncHandler(async (req, res) => {
     if (!req.user) return res.status(401).json({ error: "Unauthorized" });
-    const { id } = req.params;
+    const id = routeParam(req.params.id);
 
     const drawing = await prisma.drawing.findFirst({ where: { id, userId: req.user.id } });
     if (!drawing) return res.status(404).json({ error: "Drawing not found" });
@@ -597,7 +603,7 @@ export const registerDrawingRoutes = (
   app.post("/drawings/:id/duplicate", requireAuth, asyncHandler(async (req, res) => {
     if (!req.user) return res.status(401).json({ error: "Unauthorized" });
 
-    const { id } = req.params;
+    const id = routeParam(req.params.id);
     const original = await prisma.drawing.findFirst({ where: { id, userId: req.user.id } });
     if (!original) return res.status(404).json({ error: "Original drawing not found" });
     let duplicatedCollectionId = original.collectionId;
@@ -632,7 +638,7 @@ export const registerDrawingRoutes = (
   app.get("/drawings/:id/share-resolve", requireAuth, asyncHandler(async (req, res) => {
     if (!req.user) return res.status(401).json({ error: "Unauthorized" });
 
-    const { id } = req.params;
+    const id = routeParam(req.params.id);
     const qRaw = typeof req.query.q === "string" ? req.query.q.trim() : "";
     const q = qRaw.toLowerCase();
     if (q.length < 3) return res.json({ users: [] });
@@ -661,7 +667,7 @@ export const registerDrawingRoutes = (
 
   app.get("/drawings/:id/sharing", requireAuth, asyncHandler(async (req, res) => {
     if (!req.user) return res.status(401).json({ error: "Unauthorized" });
-    const { id } = req.params;
+    const id = routeParam(req.params.id);
 
     const drawing = await prisma.drawing.findUnique({ where: { id }, select: { userId: true } });
     if (!drawing || drawing.userId !== req.user.id) {
@@ -701,7 +707,7 @@ export const registerDrawingRoutes = (
 
   app.post("/drawings/:id/permissions", requireAuth, asyncHandler(async (req, res) => {
     if (!req.user) return res.status(401).json({ error: "Unauthorized" });
-    const { id } = req.params;
+    const id = routeParam(req.params.id);
 
     const drawing = await prisma.drawing.findUnique({ where: { id }, select: { userId: true } });
     if (!drawing || drawing.userId !== req.user.id) {
@@ -759,7 +765,8 @@ export const registerDrawingRoutes = (
 
   app.delete("/drawings/:id/permissions/:permId", requireAuth, asyncHandler(async (req, res) => {
     if (!req.user) return res.status(401).json({ error: "Unauthorized" });
-    const { id, permId } = req.params;
+    const id = routeParam(req.params.id);
+    const permId = routeParam(req.params.permId);
 
     const drawing = await prisma.drawing.findUnique({ where: { id }, select: { userId: true } });
     if (!drawing || drawing.userId !== req.user.id) {
@@ -787,7 +794,7 @@ export const registerDrawingRoutes = (
 
   app.post("/drawings/:id/link-shares", requireAuth, asyncHandler(async (req, res) => {
     if (!req.user) return res.status(401).json({ error: "Unauthorized" });
-    const { id } = req.params;
+    const id = routeParam(req.params.id);
 
     const drawing = await prisma.drawing.findUnique({ where: { id }, select: { userId: true } });
     if (!drawing || drawing.userId !== req.user.id) {
@@ -869,7 +876,8 @@ export const registerDrawingRoutes = (
 
   app.delete("/drawings/:id/link-shares/:shareId", requireAuth, asyncHandler(async (req, res) => {
     if (!req.user) return res.status(401).json({ error: "Unauthorized" });
-    const { id, shareId } = req.params;
+    const id = routeParam(req.params.id);
+    const shareId = routeParam(req.params.shareId);
 
     const drawing = await prisma.drawing.findUnique({ where: { id }, select: { userId: true } });
     if (!drawing || drawing.userId !== req.user.id) {
@@ -904,7 +912,7 @@ export const registerDrawingRoutes = (
   // List snapshots (metadata only)
   app.get("/drawings/:id/history", optionalAuth, asyncHandler(async (req, res) => {
     const principal = await getRequestPrincipal(req);
-    const { id } = req.params;
+    const id = routeParam(req.params.id);
     const access = await getDrawingAccess({ prisma, principal, drawingId: id });
     if (!canViewDrawing(access)) {
       if (respondWithAuthErrorIfPresent(req, res)) return;
@@ -931,7 +939,8 @@ export const registerDrawingRoutes = (
   // Get full snapshot for preview
   app.get("/drawings/:id/history/:snapshotId", optionalAuth, asyncHandler(async (req, res) => {
     const principal = await getRequestPrincipal(req);
-    const { id, snapshotId } = req.params;
+    const id = routeParam(req.params.id);
+    const snapshotId = routeParam(req.params.snapshotId);
     const access = await getDrawingAccess({ prisma, principal, drawingId: id });
     if (!canViewDrawing(access)) {
       if (respondWithAuthErrorIfPresent(req, res)) return;
@@ -954,7 +963,8 @@ export const registerDrawingRoutes = (
   // Restore a snapshot (snapshots current state first, then applies old state)
   app.post("/drawings/:id/history/:snapshotId/restore", optionalAuth, asyncHandler(async (req, res) => {
     const principal = await getRequestPrincipal(req);
-    const { id, snapshotId } = req.params;
+    const id = routeParam(req.params.id);
+    const snapshotId = routeParam(req.params.snapshotId);
     const access = await getDrawingAccess({ prisma, principal, drawingId: id });
     if (!canEditDrawing(access)) {
       if (respondWithAuthErrorIfPresent(req, res)) return;
